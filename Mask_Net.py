@@ -17,17 +17,8 @@ import torchvision.datasets as datasets
 from PIL import Image
 import xml.etree.ElementTree as ET
 
-#For model
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
-
-#For shwing images and graphs
-from matplotlib import pyplot as plt
-
-
-from sklearn.metrics import confusion_matrix, multilabel_confusion_matrix
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from google.colab import drive
+drive.mount('/content/drive')
 
 classes = ('cloth_mask', 'mask_worn_incorrectly', 'n95_mask', 'no_mask', 'surgical_mask')
 
@@ -74,6 +65,15 @@ print('Train size: ' + str(len(train_dataset)))
 print('Test size: ' + str(len(test_dataset)))
 train_loader = DataLoader(train_dataset,batch_size=32)
 test_loader = DataLoader(test_dataset,batch_size=32)
+
+#For model
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+#For shwing images and graphs
+from matplotlib import pyplot as plt
+
 
 class ConvNet(nn.Module):
     def __init__(self):
@@ -132,7 +132,7 @@ plt.ylabel('Loss')
 plt.title('Cross Entropy Loss')
 plt.legend()
 
-torch.save(cnn, './MaskNet.pt')
+torch.save(cnn, '/content/drive/MyDrive/MaskNet.pt')
 
 all_y = []
 all_y_h = []
@@ -149,10 +149,94 @@ with torch.no_grad():
             all_y = torch.hstack([all_y,y])
             all_y_h = torch.hstack([all_y_h,y_h])
 
+from sklearn.metrics import confusion_matrix, multilabel_confusion_matrix
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+
 print('Accuracy: ',(all_y==all_y_h).sum()/len(all_y))
 print('Precision: ',precision_score(all_y,all_y_h,average='weighted'))
 print('Recall: ',recall_score(all_y,all_y_h,average='weighted'))
 print('F1: ',f1_score(all_y,all_y_h,average='weighted'))
 print(confusion_matrix(all_y,all_y_h))
+#print(multilabel_confusion_matrix(all_y,all_y_h))
 
 torch.save(cnn, './MaskNet.pt')
+
+"""Different variants of the Model"""
+
+class ConvNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.convlayers =  nn.Sequential(
+            nn.Conv2d(3,32,3,padding=1), nn.BatchNorm2d(32), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2),
+            nn.Conv2d(32,64,3,padding=1), nn.BatchNorm2d(64), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2),
+            nn.Conv2d(64,128,3,padding=1), nn.BatchNorm2d(128), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2)
+        )
+        self.FC = nn.Sequential(
+            nn.Linear(128*16*16,100),
+            nn.Linear(100,5)
+            
+        )
+    
+    def forward(self,X):
+        X = self.convlayers(X)
+        X =  self.FC(X.reshape(-1,128*16*16))
+        return X
+
+class ConvNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.convlayers =  nn.Sequential(
+            nn.Conv2d(3,32,3), nn.BatchNorm2d(32), nn.LeakyReLU(),
+            nn.Conv2d(32,32,3), nn.BatchNorm2d(32), nn.LeakyReLU(),
+            nn.Conv2d(32,32,3), nn.BatchNorm2d(32), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2),
+            nn.Conv2d(32,64,3), nn.BatchNorm2d(64), nn.LeakyReLU(),
+            nn.Conv2d(64,64,3), nn.BatchNorm2d(64), nn.LeakyReLU(),
+            nn.Conv2d(64,64,3), nn.BatchNorm2d(64), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2),
+            nn.Conv2d(64,128,3), nn.BatchNorm2d(128), nn.LeakyReLU(),
+            nn.Conv2d(128,128,3), nn.BatchNorm2d(128), nn.LeakyReLU(),
+            nn.Conv2d(128,128,3), nn.BatchNorm2d(128), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2)
+        )
+        self.FC = nn.Sequential(
+            nn.Linear(128*16*16,100),
+            nn.Linear(100,5)
+            
+        )
+    
+    def forward(self,X):
+        X = self.convlayers(X)
+        X =  self.FC(X.reshape(-1,128*16*16))
+        return X
+
+class ConvNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.convlayers =  nn.Sequential(
+            nn.Conv2d(3,32,3,padding=1), nn.BatchNorm2d(32), nn.LeakyReLU(),
+            nn.Conv2d(32,32,3,padding=1), nn.BatchNorm2d(32), nn.LeakyReLU(),
+            nn.Conv2d(32,32,3,padding=1), nn.BatchNorm2d(32), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2),
+            nn.Conv2d(32,64,3,padding=1), nn.BatchNorm2d(64), nn.LeakyReLU(),
+            nn.Conv2d(64,64,3,padding=1), nn.BatchNorm2d(64), nn.LeakyReLU(),
+            nn.Conv2d(64,64,3,padding=1), nn.BatchNorm2d(64), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2),
+            nn.Conv2d(64,128,3,padding=1), nn.BatchNorm2d(128), nn.LeakyReLU(),
+            nn.Conv2d(128,128,3,padding=1), nn.BatchNorm2d(128), nn.LeakyReLU(),
+            nn.Conv2d(128,128,3,padding=1), nn.BatchNorm2d(128), nn.LeakyReLU(),
+            nn.MaxPool2d(2,2)
+        )
+        self.FC = nn.Sequential(
+            nn.Linear(128*16*16,5)
+            
+        )
+    
+    def forward(self,X):
+        X = self.convlayers(X)
+        X =  self.FC(X.reshape(-1,128*16*16))
+        return X
