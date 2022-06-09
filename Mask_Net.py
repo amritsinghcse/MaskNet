@@ -128,27 +128,27 @@ plt.ylabel('Loss')
 plt.title('Cross Entropy Loss')
 plt.legend()
 
-all_y = []
-all_y_h = []
+org_labels = []
+pred_labels  = []
 cnn.eval()
 with torch.no_grad():
     for  i,(X,y) in enumerate(test_loader):
-        y_h = cnn(X).cpu()
-        y_h = torch.argmax(F.softmax(y_h),dim=1)
-        if all_y==[]:
-            all_y=y[:]
-            all_y_h = y_h[:]
+        pred_y = cnn(X).cpu()
+        pred_y = torch.argmax(F.softmax(pred_y),dim=1)
+        #print(pred_y)
+        if org_labels == []:
+            org_labels=y[:]
+            pred_labels = pred_y[:]
             
         else:
-            all_y = torch.hstack([all_y,y])
-            all_y_h = torch.hstack([all_y_h,y_h])
+            org_labels = torch.hstack([org_labels, y])
+            pred_labels = torch.hstack([pred_labels, pred_y])
 
-print('Accuracy: ',(all_y==all_y_h).sum()/len(all_y))
-print('Precision: ',precision_score(all_y,all_y_h,average='weighted'))
-print('Recall: ',recall_score(all_y,all_y_h,average='weighted'))
-print('F1: ',f1_score(all_y,all_y_h,average='weighted'))
-print(confusion_matrix(all_y,all_y_h))
-#print(multilabel_confusion_matrix(all_y,all_y_h))
+print('Accuracy: ',(org_labels==pred_labels).sum()/len(org_labels))
+print('Precision: ', precision_score(org_labels,pred_labels,average='weighted'))
+print('Recall: ', recall_score(org_labels,pred_labels,average='weighted'))
+print('F1: ', f1_score(org_labels,pred_labels,average='weighted'))
+print(confusion_matrix(org_labels,pred_labels))
 
 class ConvNet_Variant1(nn.Module):
     def __init__(self):
